@@ -1,0 +1,6 @@
+Flask
+Flask-CORS
+pandas
+Pillow
+python-barcode
+openpyxl
