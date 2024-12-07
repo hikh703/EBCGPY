@@ -11,7 +11,7 @@ from barcode.writer import ImageWriter
 from flask import Flask, send_from_directory
 
 app = Flask(__name__, static_folder="static")
-CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:5500", "http://localhost:5500"]}})
+CORS(app)
 
 @app.route("/")
 def index():
@@ -149,5 +149,5 @@ def generate_labels():
 
 
 
-if __name__ == "__main__":
-    app.run(port=5000)
+# if __name__ == "__main__":
+#     app.run(port=5000)
