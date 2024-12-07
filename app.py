@@ -49,9 +49,9 @@ def generate_labels():
 
         # Generate barcodes and labels
         today = datetime.now().strftime("%d%m%y")
-        dpi = 300
-        label_width = int(60 * dpi / 25.4)  # 60mm to pixels
-        label_height = int(30 * dpi / 25.4)  # 30mm to pixels
+        dpi = 600  # Change DPI to 600
+        label_width = int(60 * dpi / 25.4)  # 60mm to pixels at 600 DPI
+        label_height = int(30 * dpi / 25.4)  # 30mm to pixels at 600 DPI
 
         zip_buffer = io.BytesIO()
 
@@ -73,8 +73,8 @@ def generate_labels():
                 # Load custom font (optional)
                 try:
                     font_path = "arial.ttf"  # Replace with your font path
-                    font_large = ImageFont.truetype(font_path, 45)
-                    font_small = ImageFont.truetype(font_path, 40)
+                    font_large = ImageFont.truetype(font_path, 90)  # Increased font size for better visibility
+                    font_small = ImageFont.truetype(font_path, 80)  # Increased font size for better visibility
                 except IOError:
                     font_large = font_small = ImageFont.load_default()
 
@@ -93,7 +93,7 @@ def generate_labels():
                 )
 
                 # Add extra space between "Taille" and "Prix"
-                total_text_height += 15  # Additional space between Taille and Prix
+                total_text_height += 40  # Additional space between Taille and Prix
 
                 # Calculate text and barcode positions
                 remaining_space = label_height - (int(label_height * 0.4) + 10)  # Space for barcode + spacing
@@ -109,16 +109,16 @@ def generate_labels():
                         font=font,
                     )
                     text_height = draw.textbbox((0, 0), text, font=font)[3] - draw.textbbox((0, 0), text, font=font)[1]
-                    text_y_start += text_height + (10 if i == 1 else 15)  # Extra space after Taille (i == 1)
+                    text_y_start += text_height + (30 if i == 1 else 35)  # Extra space after Taille (i == 1)
 
                 # Generate barcode
                 EAN = barcode.get_barcode_class("code128")
                 ean = EAN(barcode_code, writer=ImageWriter())
-                barcode_image = ean.render(writer_options={"module_height": 10, "dpi": 400})
+                barcode_image = ean.render(writer_options={"module_height": 10, "dpi": 600})  # Set barcode DPI to 600
 
                 # Resize and paste barcode
-                barcode_width = int(label_width * 1)
-                barcode_height = int(label_height * 0.5)
+                barcode_width = int(label_width * 1)  # 100% width of the label
+                barcode_height = int(label_height * 0.5)  # 50% height of the label
                 barcode_image = barcode_image.resize((barcode_width, barcode_height), Image.LANCZOS)
                 barcode_x = (label_width - barcode_width) // 2
                 barcode_y = label_height - barcode_height
@@ -153,6 +153,3 @@ def generate_labels():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
     app.run(host="0.0.0.0", port=port, debug=True)
-
-
-
