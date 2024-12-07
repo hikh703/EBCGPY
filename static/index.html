@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Labels</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input {
+            padding: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generate Barcode Labels</h1>
+        <form id="uploadForm">
+            <label for="file">Upload Excel File:</label>
+            <input type="file" id="file" accept=".xlsx,.xls" required><br>
+            <label for="userNumber">Enter User Number:</label>
+            <input type="number" id="userNumber" required><br>
+            <button type="submit">Generate Labels</button>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById("uploadForm");
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const fileInput = document.getElementById("file");
+            const userNumberInput = document.getElementById("userNumber");
+            const file = fileInput.files[0];
+            const userNumber = userNumberInput.value;
+
+            if (!file || !userNumber) {
+                alert("Please upload a file and enter a user number.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("user_number", userNumber);
+
+            try {
+                // Update API endpoint to point to the Flask server
+                const response = await fetch("http://127.0.0.1:5000/generate-labels", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    // Handle ZIP file response
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "labels.zip";
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } else {
+                    // Handle JSON error response
+                    const error = await response.json();
+                    alert(error.error || "An unknown error occurred.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Failed to generate labels. Please try again.");
+            }
+        });
+    </script>
+</body>
+</html>
