@@ -8,7 +8,8 @@ from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import barcode
 from barcode.writer import ImageWriter
-from flask import Flask, send_from_directory
+from flask import send_from_directory
+from werkzeug.middleware.proxy_fix import ProxyFix  # For compatibility with Vercel
 
 app = Flask(__name__, static_folder="static")
 CORS(app)
@@ -148,6 +149,10 @@ def generate_labels():
         return jsonify({"error": str(e)}), 500
 
 
+# Middleware to make Flask work with Vercel
+app.wsgi_app = ProxyFix(app.wsgi_app)
 
-# if __name__ == "__main__":
-#     app.run(port=5000)
+# Export handler for Vercel
+def handler(event, context):
+    from flask import request
+    return app(event, context)
