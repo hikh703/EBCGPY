@@ -149,10 +149,9 @@ def generate_labels():
         return jsonify({"error": str(e)}), 500
 
 
-# Middleware to make Flask work with Vercel
-app.wsgi_app = ProxyFix(app.wsgi_app)
 
-# Export handler for Vercel
-def handler(event, context):
-    from flask import request
-    return app(event, context)
+import os
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
+    app.run(host="0.0.0.0", port=port, debug=True)
