@@ -65,10 +65,19 @@ def generate_labels():
                 text_size = f"Taille: {product['Valeur Option1']}"
                 text_price = f"{product['Prix']}€"
 
-                # Measure text sizes
-                text_name_width, text_name_height = draw.textsize(text_name, font=font_large)
-                text_size_width, text_size_height = draw.textsize(text_size, font=font_small)
-                text_price_width, text_price_height = draw.textsize(text_price, font=font_small)
+                # Measure text sizes using textbbox
+                text_name_bbox = draw.textbbox((0, 0), text_name, font=font_large)
+                text_size_bbox = draw.textbbox((0, 0), text_size, font=font_small)
+                text_price_bbox = draw.textbbox((0, 0), text_price, font=font_small)
+
+                text_name_width = text_name_bbox[2] - text_name_bbox[0]
+                text_name_height = text_name_bbox[3] - text_name_bbox[1]
+
+                text_size_width = text_size_bbox[2] - text_size_bbox[0]
+                text_size_height = text_size_bbox[3] - text_size_bbox[1]
+
+                text_price_width = text_price_bbox[2] - text_price_bbox[0]
+                text_price_height = text_price_bbox[3] - text_price_bbox[1]
 
                 # Barcode generation
                 barcode_code = product["Code-barres"]
