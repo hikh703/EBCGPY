@@ -73,45 +73,24 @@ def generate_labels():
                 # Load custom font (optional)
                 try:
                     font_path = "arial.ttf"  # Replace with your font path
-                    font_large = ImageFont.truetype(font_path, 45)
-                    font_small = ImageFont.truetype(font_path, 40)
+                    font_large = ImageFont.truetype(font_path, 42)
+                    font_small = ImageFont.truetype(font_path, 32)
                 except IOError:
                     font_large = font_small = ImageFont.load_default()
 
-                # Prepare label content
-                text_elements = []
+                # Add product details if they exist
+                y_offset = 10
                 if nom:
-                    text_elements.append((nom, font_large))
-                text_elements.append((f"Taille: {valeur_option1 if valeur_option1 else ''}", font_small))
+                    draw.text((10, y_offset), nom, fill="black", font=font_large)
+                    y_offset += 50
+                if valeur_option1:
+                    draw.text((10, y_offset), f"Taille: {valeur_option1}", fill="black", font=font_small)
+                    y_offset += 40
                 if prix:
-                    text_elements.append((f"{prix}€", font_small))
+                    draw.text((10, y_offset), f"{prix}€", fill="black", font=font_small)
+                    y_offset += 40
 
-                # Calculate total text height
-                total_text_height = sum(
-                    draw.textbbox((0, 0), text, font=font)[3] - draw.textbbox((0, 0), text, font=font)[1] + 10
-                    for text, font in text_elements
-                )
-
-                # Add extra space between "Taille" and "Prix"
-                total_text_height += 10  # Additional space between Taille and Prix
-
-                # Calculate text and barcode positions
-                remaining_space = label_height - (int(label_height * 0.4) + 20)  # Space for barcode + spacing
-                text_y_start = (remaining_space - total_text_height) // 2
-
-                # Draw text
-                for i, (text, font) in enumerate(text_elements):
-                    text_width = draw.textbbox((0, 0), text, font=font)[2]
-                    draw.text(
-                        ((label_width - text_width) // 2, text_y_start),
-                        text,
-                        fill="black",
-                        font=font,
-                    )
-                    text_height = draw.textbbox((0, 0), text, font=font)[3] - draw.textbbox((0, 0), text, font=font)[1]
-                    text_y_start += text_height + (25 if i == 1 else 20)  # Extra space after Taille (i == 1)
-
-                # Generate barcode
+                # Barcode generation
                 EAN = barcode.get_barcode_class("code128")
                 ean = EAN(barcode_code, writer=ImageWriter())
                 barcode_image = ean.render(writer_options={"module_height": 10, "dpi": dpi})
@@ -120,9 +99,7 @@ def generate_labels():
                 barcode_width = int(label_width * 0.8)
                 barcode_height = int(label_height * 0.4)
                 barcode_image = barcode_image.resize((barcode_width, barcode_height), Image.LANCZOS)
-                barcode_x = (label_width - barcode_width) // 2
-                barcode_y = label_height - barcode_height - 20
-                label.paste(barcode_image, (barcode_x, barcode_y))
+                label.paste(barcode_image, (int((label_width - barcode_width) / 2), y_offset))
 
                 # Save label as PNG in memory
                 label_buffer = io.BytesIO()
@@ -145,7 +122,7 @@ def generate_labels():
             zip_buffer,
             mimetype="application/zip",
             as_attachment=True,
-            download_name="etiquettes_with_excel.zip"
+            download_name="etiquettes.zip"
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -153,6 +130,3 @@ def generate_labels():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
     app.run(host="0.0.0.0", port=port, debug=True)
-
-
-

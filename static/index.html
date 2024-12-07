@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generate Labels</title>
+    <title>Générer des Étiquettes</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,20 +13,21 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f4f4f4;
+            color: #333;
         }
         .container {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
             width: 100%;
-            max-width: 500px;
+            max-width: 400px;
         }
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
             text-align: center;
+            color: black;
         }
         form {
             display: flex;
@@ -36,40 +37,82 @@
             font-weight: bold;
             margin-bottom: 5px;
         }
-        input {
+        input[type="file"] {
+            border: 1px solid #ccc;
+            border-radius: 4px;
             padding: 8px;
             font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        input[type="file"]::-webkit-file-upload-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="file"]::-webkit-file-upload-button:hover {
+            background-color: #0056b3;
+        }
+        input[type="number"] {
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             margin-bottom: 15px;
         }
         button {
-            padding: 10px;
+            padding: 12px;
             font-size: 16px;
             background-color: #007bff;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-weight: bold;
         }
         button:hover {
             background-color: #0056b3;
+        }
+        .spinner {
+            display: none;
+            margin: 20px auto;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Generate Barcode Labels</h1>
+        <h1>Générer des Étiquettes Code-Barres</h1>
         <form id="uploadForm">
-            <label for="file">Upload Excel File:</label>
+            <label for="file">Télécharger un fichier Excel :</label>
             <input type="file" id="file" accept=".xlsx,.xls" required><br>
-            <label for="userNumber">Enter User Number:</label>
-            <input type="number" id="userNumber" required><br>
-            <button type="submit">Generate Labels</button>
+            <label for="userNumber">Entrer le Numéro de portant :</label>
+            <input type="number" id="userNumber" min="0" required><br>
+            <button type="submit">Générer les Étiquettes</button>
+            <div class="spinner" id="spinner"></div>
         </form>
     </div>
 
     <script>
         const baseUrl = window.location.origin; // Adapts to the current domain
         const form = document.getElementById("uploadForm");
+        const spinner = document.getElementById("spinner");
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -79,14 +122,23 @@
             const file = fileInput.files[0];
             const userNumber = userNumberInput.value;
 
-            if (!file || !userNumber) {
-                alert("Please upload a file and enter a user number.");
+            // Validation for Numéro de portant
+            if (isNaN(userNumber) || userNumber.trim() === "" || Number(userNumber) < 0) {
+                alert("Veuillez entrer un numéro de portant valide.");
+                return;
+            }
+
+            if (!file) {
+                alert("Veuillez télécharger un fichier valide.");
                 return;
             }
 
             const formData = new FormData();
             formData.append("file", file);
             formData.append("user_number", userNumber);
+
+            // Show spinner
+            spinner.style.display = "block";
 
             try {
                 const response = await fetch(`${baseUrl}/generate-labels`, {
@@ -97,19 +149,26 @@
                 if (response.ok) {
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
+
+                    // Hide spinner before starting download
+                    spinner.style.display = "none";
+
                     const a = document.createElement("a");
                     a.href = url;
-                    a.download = "labels.zip";
+                    a.download = "etiquettes.zip";
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
                 } else {
                     const error = await response.json();
-                    alert(error.error || "An unknown error occurred.");
+                    alert(error.error || "Une erreur inconnue s'est produite.");
                 }
             } catch (error) {
-                console.error("Error:", error);
-                alert("Failed to generate labels. Please try again.");
+                console.error("Erreur :", error);
+                alert("Échec de la génération des étiquettes. Veuillez réessayer.");
+            } finally {
+                // Always hide spinner after the request completes
+                spinner.style.display = "none";
             }
         });
     </script>
