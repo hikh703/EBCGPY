@@ -93,10 +93,10 @@ def generate_labels():
                 )
 
                 # Add extra space between "Taille" and "Prix"
-                total_text_height += 10  # Additional space between Taille and Prix
+                total_text_height += 15  # Additional space between Taille and Prix
 
                 # Calculate text and barcode positions
-                remaining_space = label_height - (int(label_height * 0.4) + 20)  # Space for barcode + spacing
+                remaining_space = label_height - (int(label_height * 0.4) + 10)  # Space for barcode + spacing
                 text_y_start = (remaining_space - total_text_height) // 2
 
                 # Draw text
@@ -109,19 +109,19 @@ def generate_labels():
                         font=font,
                     )
                     text_height = draw.textbbox((0, 0), text, font=font)[3] - draw.textbbox((0, 0), text, font=font)[1]
-                    text_y_start += text_height + (25 if i == 1 else 20)  # Extra space after Taille (i == 1)
+                    text_y_start += text_height + (10 if i == 1 else 15)  # Extra space after Taille (i == 1)
 
                 # Generate barcode
                 EAN = barcode.get_barcode_class("code128")
                 ean = EAN(barcode_code, writer=ImageWriter())
-                barcode_image = ean.render(writer_options={"module_height": 10, "dpi": dpi})
+                barcode_image = ean.render(writer_options={"module_height": 10, "dpi": 400})
 
                 # Resize and paste barcode
-                barcode_width = int(label_width * 0.8)
-                barcode_height = int(label_height * 0.4)
+                barcode_width = int(label_width * 1)
+                barcode_height = int(label_height * 0.5)
                 barcode_image = barcode_image.resize((barcode_width, barcode_height), Image.LANCZOS)
                 barcode_x = (label_width - barcode_width) // 2
-                barcode_y = label_height - barcode_height - 20
+                barcode_y = label_height - barcode_height
                 label.paste(barcode_image, (barcode_x, barcode_y))
 
                 # Save label as PNG in memory
